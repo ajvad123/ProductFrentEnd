@@ -1,89 +1,87 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { categoryAdding, addSubCategoryAPI, getAllCategories } from '../services/allApies';
 
 // Create context
 const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  // Categories state
+  // States
   const [categories, setCategories] = useState([]);
-
-  // Products state
   const [products, setProducts] = useState([]);
-
-  // Wishlist state
   const [wishlistItems, setWishlistItems] = useState([]);
-
-  // Cart state
   const [cartItems, setCartItems] = useState([]);
 
-  // Load initial data from localStorage if available
-  useEffect(() => {
-    try {
-      const storedCategories = localStorage.getItem('categories');
-      const storedProducts = localStorage.getItem('products');
-      const storedWishlist = localStorage.getItem('wishlist');
-      const storedCart = localStorage.getItem('cart');
+  // ✅ Fetch categories on component mount
+  
 
-      if (storedCategories) setCategories(JSON.parse(storedCategories));
-      if (storedProducts) setProducts(JSON.parse(storedProducts));
-      if (storedWishlist) setWishlistItems(JSON.parse(storedWishlist));
-      if (storedCart) setCartItems(JSON.parse(storedCart));
-    } catch (error) {
-      console.error('Error loading data from localStorage:', error);
-    }
-  }, []);
-
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('categories', JSON.stringify(categories));
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
-  }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
-
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  // Category functions
-  const addCategory = (name) => {
-    const newCategory = {
-      id: Date.now(),
-      name,
-      icon: null,
-      subcategories: []
+  // 👉 Add Category
+  const addCategory = async (name) => {
+    const categoryData = { NCategory: name };
+    const token = sessionStorage.getItem('token');
+    const header = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
     };
-    setCategories([...categories, newCategory]);
-    return newCategory;
-  };
 
-  // Subcategory functions
-  const addSubCategory = (categoryId, name) => {
-    const updatedCategories = categories.map(category => {
-      if (category.id === Number(categoryId)) {
-        return {
-          ...category,
-          subcategories: [
-            ...category.subcategories,
-            {
-              id: Date.now(),
-              name,
-              icon: null
-            }
-          ]
+    try {
+      const response = await categoryAdding(categoryData, header);
+      if (response.status === 200 || response.status === 201) {
+        const savedCategory = {
+          id: response.data._id,
+          name: response.data.NCategory,
+          subcategories: []
         };
+        setCategories([...categories, savedCategory]);
+        return savedCategory;
+      } else {
+        console.error("Failed to add category:", response);
       }
-      return category;
-    });
-    setCategories(updatedCategories);
+    } catch (error) {
+      console.error("Error adding category:", error);
+    }
   };
 
-  // Product functions
+  // 👉 Add Subcategory
+  const addSubCategory = async (categoryId, name) => {
+    const subCategoryData = {
+      categoryId,
+      subCategoryName: name
+    };
+    const token = sessionStorage.getItem('token');
+    const header = {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    };
+
+    try {
+      const response = await addSubCategoryAPI(subCategoryData, header);
+      if (response.status === 200 || response.status === 201) {
+        const savedSubCategory = response.data;
+
+        const updatedCategories = categories.map(category => {
+          if (category.id === Number(categoryId)) {
+            return {
+              ...category,
+              subcategories: [
+                ...(category.subcategories || []),
+                savedSubCategory
+              ]
+            };
+          }
+          return category;
+        });
+
+        setCategories(updatedCategories);
+        return savedSubCategory;
+      } else {
+        console.error("Failed to add subcategory:", response);
+      }
+    } catch (error) {
+      console.error("Error adding subcategory:", error);
+    }
+  };
+
+  // 👉 Add Product
   const addProduct = (productData) => {
     const { title, subCategoryId, description, variants, imageUrls = [] } = productData;
 
@@ -109,7 +107,7 @@ export const StoreProvider = ({ children }) => {
     return newProduct;
   };
 
-  // Wishlist functions
+  // 👉 Wishlist functions
   const addToWishlist = (productId) => {
     const product = products.find(p => p.id === productId);
     if (product && !wishlistItems.some(item => item.id === productId)) {
@@ -127,7 +125,7 @@ export const StoreProvider = ({ children }) => {
     return wishlistItems.some(item => item.id === productId);
   };
 
-  // 🛒 Cart functions
+  // 👉 Cart functions
   const addToCart = (product, quantity = 1, selectedVariant = null) => {
     const existingItem = cartItems.find(
       item => item.id === product.id && item.variant?.id === selectedVariant?.id

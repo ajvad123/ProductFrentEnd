@@ -1,18 +1,60 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
+import { userRegistration } from '../services/allApies';
+import { useNavigate } from 'react-router-dom';
+
 
 const SignUp = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  
-  const handleSubmit = (e) => {
+  const [Name, setName] = useState('');
+  const [Email, setEmail] = useState('');
+  const [Password, setPassword] = useState('');
+
+  const navigate=useNavigate()
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Signing up with:', { name, email, password });
-    // Add registration logic
+    console.log('Signing up with:', { Name, Email, Password });
+
+    //  registration logic
+    try{
+    const result = await userRegistration({ Name, Email, Password })
+
+    console.log(result);
+
+    if (result.status == 201) {
+      toast({
+        title: "Success",
+        description: `User Registration Successfully..!`
+      });
+      setName('');
+      setEmail('');
+      setPassword('');
+      navigate('/signin')
+
+    } else {
+      console.log(result.response.data);
+
+      toast({
+        title: "Error",
+        description: result.response?.data || 'Registration failed',
+        variant: "destructive"
+      });
+    }
+  }catch(err){
+    console.log(err);
+    toast({
+            title: "Error",
+            description: err,
+            variant: "destructive"
+          });
+    
+  }
+
   };
-  
+
   return (
     <div className="min-h-screen flex items-stretch">
       {/* Left Side - Blue Background with Content */}
@@ -21,26 +63,25 @@ const SignUp = () => {
         <div className="absolute w-60 h-60 bg-brand-dark-blue opacity-10 rounded-full bottom-10 -right-20"></div>
         <div className="absolute w-20 h-20 bg-brand-orange opacity-20 rounded-full top-1/3 left-1/3 transform rotate-45"></div>
         <div className="z-10 text-center">
-          <h1 className="text-3xl font-bold mb-6">Welcome Back!</h1>
+          <h1 className="text-3xl font-bold mb-6">Hello Friend!</h1>
           <p className="mb-8 max-w-sm">
-            To keep connected with us please login with your personal info
+            Enter your personal details and start your journey with us
           </p>
-          <Link 
-            to="/signin" 
+          <Link
+            to="/signin"
             className="inline-block border-2 border-white text-white px-8 py-2 rounded-full hover:bg-white hover:text-brand-blue transition-colors"
           >
-            SIGN IN
-          </Link>
+            Already have an account?          </Link>
         </div>
       </div>
-      
+
       {/* Right Side - Form */}
       <div className="w-full md:w-1/2 bg-white p-8 flex flex-col justify-center items-center">
         <div className="w-full max-w-md">
           <h2 className="text-2xl font-bold text-center text-brand-orange mb-8">
             Create Account
           </h2>
-          
+
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
               <div className="relative">
@@ -53,13 +94,13 @@ const SignUp = () => {
                   type="text"
                   placeholder="Name"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                  value={name}
+                  value={Name}
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
             </div>
-            
+
             <div className="mb-6">
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -72,13 +113,13 @@ const SignUp = () => {
                   type="email"
                   placeholder="Email"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                  value={email}
+                  value={Email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
             </div>
-            
+
             <div className="mb-6">
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -90,20 +131,20 @@ const SignUp = () => {
                   type="password"
                   placeholder="Password"
                   className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-blue"
-                  value={password}
+                  value={Password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
               </div>
             </div>
-            
+
             <button
               type="submit"
               className="w-full bg-brand-orange text-white py-3 rounded-md hover:bg-amber-500 transition-colors"
             >
               SIGN UP
             </button>
-            
+
             <div className="mt-8 text-center text-gray-600 md:hidden">
               <p>Already have an account?</p>
               <Link to="/signin" className="text-brand-blue hover:underline">

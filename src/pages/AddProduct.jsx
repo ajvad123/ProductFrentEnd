@@ -6,6 +6,7 @@ import { Minus, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../context/StoreContext';
 import { toast } from '@/hooks/use-toast';
+import { addProducts } from '../services/allApies';
 
 const AddProduct = () => {
   const [title, setTitle] = useState('');
@@ -68,7 +69,7 @@ const AddProduct = () => {
     setPreviewUrls(newPreviewUrls);
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     
     // Validation
@@ -109,6 +110,7 @@ const AddProduct = () => {
     
     console.log('Product data to save:', formData);
     
+    const result= await addProducts(formData)
     // Add product
     addProduct(formData);
     
@@ -125,7 +127,7 @@ const AddProduct = () => {
   };
   
   const breadcrumbItems = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '/home' },
     { name: 'Add Product' },
   ];
   

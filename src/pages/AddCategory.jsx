@@ -45,7 +45,7 @@ const AddCategory = () => {
   };
   
   const breadcrumbItems = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '/home' },
     { name: 'Add Category' },
   ];
   

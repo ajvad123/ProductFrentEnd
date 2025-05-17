@@ -10,7 +10,7 @@ const Cart = () => {
   const { cartItems, removeFromCart } = useStore();
 
   const breadcrumbItems = [
-    { name: 'Home', href: '/' },
+    { name: 'Home', href: '/home' },
     { name: 'Cart' },
   ];
 
